@@ -7,6 +7,8 @@
         <button (click)="scrollToCurrentDate()">[|]</button>
         <button (click)="exportTasks()">save</button>
         <button (click)="importTasks()">load</button>
+        <br />
+        <button (click)="toggleDarkMode()">{{ darkMode ? '🌑' : '🌙' }}</button>
         <!-- <span></span>
         <span>{{ currentPrecision }}</span> -->
         <!-- <button (click)="importTasks()">导入任务</button> -->
@@ -14,7 +16,7 @@
     <div class="calendar-body" #calendarBody (scroll)="onScroll($event)" (wheel)="onWheel($event)">
         <div class="date-container">
             <div *ngFor="let date of dates; let i = index" class="date-cell" [style.width.px]="cellWidth"
-            [style.backgroundColor]="i % 2 === 0 ? 'white' : 'lightgray'">
+            [style.backgroundColor]="i % 2 === 0 ? (darkMode ? 'darkgray' : 'white') : (darkMode ? 'gray' : 'lightgray')">
                 {{ formatDate(date) }}
             </div>
         </div>
@@ -41,9 +43,12 @@
                      [style.top.px]="getTaskPosition(task).top"
                      [style.border]="'2px solid ' + getPriorityColor(task)"
                      [style.backgroundColor]="getTaskColor(task)"
-                     [title]="task.title + ' (' + task.priority + '): ' + task.description"
+                     [title]="task.title + ' [' + task.priority + ']: ' + task.description"
                      (click)="openEditDialog(task)">
-                    <span class="task-title">{{task.title}}</span>
+                    <p class="task-title">{{task.title}}</p>
+                    <div class="progress-bar-container" *ngIf="getTaskProgress(task) > 0">
+                        <div class="progress-bar" [style.width.%]="getTaskProgress(task)"></div>
+                    </div>
                 </div>
             </ng-container>
         </div>

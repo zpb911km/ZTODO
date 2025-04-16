@@ -110,3 +110,8 @@ button {
     background-color: #0f0f0f69;
   }
 } */
+
+.container {
+  margin: 0;
+  padding: 0;
+}

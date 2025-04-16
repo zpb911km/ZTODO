@@ -12,7 +12,6 @@ import {
 } from "@angular/core";
 import { Task } from "../core/interface/task";
 import { invoke } from "@tauri-apps/api/core";
-import { min } from "rxjs";
 
 @Component({
   selector: "app-calendar",
@@ -31,6 +30,44 @@ export class CalendarComponent implements AfterViewInit, OnChanges {
   precisionLevels = ["year", "month", "week", "day", "hour", "minute"]; // 添加周、小时和分钟
   precisionIndex: number = 3; // 初始精度为 'day'
   editingTask: Task | null = null; // 当前编辑的任务
+  darkMode: boolean = false;
+
+  constructor(private cdr: ChangeDetectorRef) {
+    this.currentPrecision = this.precisionLevels[this.precisionIndex];
+    setTimeout(() => {
+      this.scrollToCurrentDate();
+    }, 100);
+    // Load theme preference from localStorage
+    const savedTheme = localStorage.getItem('calendarTheme');
+    if (savedTheme) {
+      this.darkMode = savedTheme === 'dark';
+      // Delay theme application to avoid change detection issues
+      setTimeout(() => this.applyTheme(), 0);
+    }
+  }
+
+  toggleDarkMode() {
+    this.darkMode = !this.darkMode;
+    this.applyTheme();
+    // Save theme preference
+    localStorage.setItem('calendarTheme', this.darkMode ? 'dark' : 'light');
+  }
+
+  private applyTheme() {
+    // 实际应用主题样式
+    const calendarElement = this.calendarBody?.nativeElement?.parentElement;
+    if (calendarElement) {
+      if (this.darkMode) {
+        calendarElement.classList.add('dark-theme');
+        calendarElement.classList.remove('light-theme');
+      } else {
+        calendarElement.classList.add('light-theme');
+        calendarElement.classList.remove('dark-theme');
+      }
+    }
+    this.cdr.markForCheck();
+  }
+  
 
   getTaskPosition(task: Task): {left: number, width: number, top: number, isIndicator: boolean, color: string} {
     if (!this.taskLayout) return {left: 0, width: 0, top: 0, isIndicator: false, color: '#9e9e9e'};
@@ -123,24 +160,15 @@ export class CalendarComponent implements AfterViewInit, OnChanges {
     this.taskLayout = [];
     this.generateDates();
     this.scrollToCurrentDate();
-    this.calculateTaskLayout();
+    // this.calculateTaskLayout();
     this.updateTaskPositions();
-    this.cdr.detectChanges();
-  }
-
-  constructor(private cdr: ChangeDetectorRef) {
-    // 确保初始精度和生成日期同步
-    this.currentPrecision = this.precisionLevels[this.precisionIndex];
-    setTimeout(() => {
-      this.scrollToCurrentDate();
-      this.calculateTaskLayout();
-    }, 100);
+    // this.cdr.detectChanges();
   }
 
   ngOnChanges() {
     if (this.tasks) {
       this.tasks = [...this.tasks]; // 触发变更检测
-      this.calculateTaskLayout();
+      // this.calculateTaskLayout();
     }
   }
 
@@ -154,7 +182,7 @@ export class CalendarComponent implements AfterViewInit, OnChanges {
       this.taskLayout = [];
       this.generateDates();
       this.calculateTaskLayout();
-      this.updateTaskPositions();
+      // this.updateTaskPositions();
       this.cdr.detectChanges();
       this.scrollToTime(facingTime);
     }
@@ -170,7 +198,7 @@ export class CalendarComponent implements AfterViewInit, OnChanges {
       this.taskLayout = [];
       this.generateDates();
       this.calculateTaskLayout();
-      this.updateTaskPositions();
+      // this.updateTaskPositions();
       this.cdr.detectChanges();
       this.scrollToTime(facingTime);
     }
@@ -258,11 +286,11 @@ export class CalendarComponent implements AfterViewInit, OnChanges {
             }
             indicatorTasksMap.get(cellIndex)!.push(task);
           }
-          console.log(task.title, 'is contained in cell', cellIndex);
+          // console.log(task.title, 'is contained in cell', cellIndex);
         } else {
           // 跨单元格的任务正常显示
           normalTasks.push(task);
-          console.log(task.title, 'is not contained in cell');
+          // console.log(task.title, 'is not contained in cell');
         }
       });
 
@@ -278,7 +306,7 @@ export class CalendarComponent implements AfterViewInit, OnChanges {
       
       // 分配任务到不同的行
       for (const task of sortedNormalTasks) {
-        console.log('Processing task:', task.title);
+        // console.log('Processing task:', task.title);
         let placed = false;
         const taskStart = task.start.getTime();
         const taskEnd = task.end.getTime();
@@ -305,17 +333,25 @@ export class CalendarComponent implements AfterViewInit, OnChanges {
 
         // 尝试放入已有行
         for (const lane of lanes) {
-          const canNotPlace = lane.some(t => {
-            const tStart = t.start.getTime();
-            const tEnd = t.end.getTime();
-            // 检查是否存在时间重叠
-            const head_in = taskStart < tEnd || (taskStart - tEnd < min_diff);
-            const tail_in = taskEnd > tStart || (tStart - taskEnd < min_diff);
-            return head_in || tail_in;
-          });
-          console.log(task.title, 'canNotPlace:', canNotPlace);
+          let canPlace = true;
+          for (const t of lane) {
+            const tStart = t.start.getTime() - min_diff;
+            const tEnd = t.end.getTime() + min_diff;
+            if (
+              (taskStart <= tStart && taskEnd <= tStart) ||
+              (taskStart >= tEnd && taskEnd >= tEnd)             
+            ) {
+              // console.log(task.title, ":", task.start.getTime(), task.end.getTime(), "和", t.title, ":", t.start.getTime(), t.end.getTime(), "不重叠");
+              canPlace = true;
+            } else {
+              canPlace = false;
+              // console.log(task.title, 'and', t.title, '重叠了');
+            }
+          }
+          
+          // console.log(task.title, 'canPlace:', canPlace);
 
-          if (!canNotPlace) {
+          if (canPlace) {
             lane.push(task);
             placed = true;
             break;
@@ -333,8 +369,16 @@ export class CalendarComponent implements AfterViewInit, OnChanges {
       // 计算任务位置
       lanes.forEach((lane, laneIndex) => {
         lane.forEach(task => {
-          const startIndex = this.findDateIndex(task.start);
-          const endIndex = this.findDateIndex(task.end);
+          let startIndex = this.findDateIndex(task.start);
+          let endIndex = this.findDateIndex(task.end);
+          // console.log(task.title, ':', startIndex, endIndex);
+          if (startIndex === -1 && endIndex === -1) return;
+          if (startIndex === -1) {
+            startIndex = 0;
+          }
+          if (endIndex === -1) {
+            endIndex = dateElements.length - 1;
+          }
           const startCell = dateElements[startIndex >= 0 ? startIndex : 0];
           const endCell = dateElements[endIndex >= 0 ? endIndex : dateElements.length - 1];
 
@@ -537,16 +581,16 @@ export class CalendarComponent implements AfterViewInit, OnChanges {
     }));
     
     const json = JSON.stringify(tasksWithStringDates, null, 4);
-    console.log('Exported tasks:', json);
+    // console.log('Exported tasks:', json);
     
     invoke<void>("post_data", { url: 'http://172.18.91.245:12345/api/tasks', data: json }).then(_ => {
-      console.log('Export success', json);
+      // console.log('Export success', json);
     }).catch(error => {
       alert('post failed' + error);
     });
     // this.http.post('http://118.202.30.22:12345/api/tasks', json).subscribe(
     //   response => {
-    //     console.log('HTTP POST Response:', response);
+    //     // console.log('HTTP POST Response:', response);
     //     alert('Export success');
     //   },
     //   error => {
@@ -559,14 +603,14 @@ export class CalendarComponent implements AfterViewInit, OnChanges {
   async importTasks(): Promise<void> {
     let json = "[]";
     await invoke<string>("fetch_data", { url: 'http://172.18.91.245:12345/api/tasks' }).then(result => {
-      console.log('Read file result:', result);
+      // console.log('Read file result:', result);
       json = result;
     }).catch(error => {
       alert('fetch error:' + error);
     });
     // await this.http.get('http://118.202.30.22:12345/api/tasks').subscribe(
     //   response => {
-    //     console.log('HTTP GET Response:', response);
+    //     // console.log('HTTP GET Response:', response);
     //     if (!response) {
     //       alert('读取文件失败');
     //       return;
@@ -582,7 +626,7 @@ export class CalendarComponent implements AfterViewInit, OnChanges {
     
     try {
       const parsed = JSON.parse(json);
-      console.log('Importing tasks:', parsed);
+      // console.log('Importing tasks:', parsed);
       // 转换字符串为Date对象
       const tasksWithDates = parsed.map((task: any) => ({
         ...task,
@@ -592,7 +636,7 @@ export class CalendarComponent implements AfterViewInit, OnChanges {
       
       this.tasks = tasksWithDates;
       this.calculateTaskLayout();
-      console.log('Imported tasks:', this.tasks);
+      // console.log('Imported tasks:', this.tasks);
     } catch (e) {
       console.error('导入失败:', e);
       alert('导入失败，请检查JSON格式');
@@ -700,11 +744,10 @@ export class CalendarComponent implements AfterViewInit, OnChanges {
     if (
       scrollElement.scrollLeft >=
       scrollElement.scrollWidth -
-      scrollElement.clientWidth -
-      this.cellWidth * 2
+      scrollElement.clientWidth
     ) {
       this.appendDates();
-    } else if (scrollElement.scrollLeft <= this.cellWidth * 2) {
+    } else if (scrollElement.scrollLeft <= 0) {
       this.prependDates();
     }
   }
@@ -717,6 +760,7 @@ export class CalendarComponent implements AfterViewInit, OnChanges {
     element.scrollLeft += deltaY;
     // 阻止默认的竖向滚动行为
     event.preventDefault();
+    // this.onScroll(event);
   }
 
   appendDates() {
@@ -726,10 +770,16 @@ export class CalendarComponent implements AfterViewInit, OnChanges {
     for (let i = 1; i <= 100; i++) {
       this.dates.push(this.addTime(lastDate, i, precision));
     }
+    // console.log('Appended dates:', this.dates);
     
     // 更新任务位置
+    const facingTime = this.getFacingTime();
+    // 完全重置日期和布局
+    this.taskLayout = [];
     this.calculateTaskLayout();
-    this.updateTaskPositions();
+    // this.updateTaskPositions();
+    this.cdr.detectChanges();
+    this.scrollToTime(facingTime);
   }
 
   prependDates() {
@@ -739,10 +789,16 @@ export class CalendarComponent implements AfterViewInit, OnChanges {
     for (let i = -1; i >= -100; i--) {
       this.dates.unshift(this.addTime(firstDate, i, precision));
     }
+    // console.log('Prepended dates:', this.dates, this.dates.length);
     
     // 更新任务位置
+    const facingTime = this.getFacingTime();
+    // 完全重置日期和布局
+    this.taskLayout = [];
     this.calculateTaskLayout();
-    this.updateTaskPositions();
+    // this.updateTaskPositions();
+    this.cdr.detectChanges();
+    this.scrollToTime(facingTime);
   }
 
   scrollToCurrentDate() {
@@ -750,10 +806,11 @@ export class CalendarComponent implements AfterViewInit, OnChanges {
   }
 
   scrollToTime(date: Date) {
-    const precision = this.getPrecision();
+    if (!date || !this.dates || this.dates.length === 0) return;
     
-    // 计算指定日期在时间轴上的位置
+    const precision = this.getPrecision();
     const startDate = this.dates[0];
+    if (!startDate) return;
     
     // 计算两个日期之间的差值（单位取决于当前精度）
     let diff = 0;
@@ -889,6 +946,16 @@ export class CalendarComponent implements AfterViewInit, OnChanges {
     }
     
     return date;
+  }
+
+  getTaskProgress(task: Task): number {
+    // console.log(task.title, task.others);
+    if (task.others.find(o => o.key === 'progress')) {
+      const progress = task.others.find(o => o.key === 'progress')!.value;
+      return Number(progress);
+    } else {
+      return 0;
+    }
   }
 }
 
