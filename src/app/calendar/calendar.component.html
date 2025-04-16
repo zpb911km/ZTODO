@@ -1,0 +1,113 @@
+<meta name="viewport" content="width=device-width, initial-scale=1.4">
+<div class="calendar">
+    <div class="calendar-header">
+        <button (click)="addNewTask()">[+]</button>
+        <button (click)="zoomIn()">(+)</button>
+        <button (click)="zoomOut()">(-)</button>
+        <button (click)="scrollToCurrentDate()">[|]</button>
+        <button (click)="exportTasks()">save</button>
+        <button (click)="importTasks()">load</button>
+        <span></span>
+        <span>{{ currentPrecision }}</span>
+        <!-- <button (click)="importTasks()">导入任务</button> -->
+    </div>
+    <div class="calendar-body" #calendarBody (scroll)="onScroll($event)" (wheel)="onWheel($event)">
+        <div class="date-container">
+            <div *ngFor="let date of dates; let i = index" class="date-cell" [style.width.px]="cellWidth"
+            [style.backgroundColor]="i % 2 === 0 ? 'white' : 'lightgray'">
+                {{ formatDate(date) }}
+            </div>
+        </div>
+        <!-- 小方块任务容器 -->
+        <div class="indicator-container">
+            <ng-container *ngFor="let task of tasks">
+                <div *ngIf="getTaskPosition(task).isIndicator" class="task-indicator" 
+                     [style.left.px]="getTaskPosition(task).left"
+                     [style.top.px]="getTaskPosition(task).top"
+                     [style.border]="'1px solid ' + getPriorityColor(task)"
+                     [style.backgroundColor]="getTaskColor(task)"
+                     [title]="task.title + ' (' + task.priority + '): ' + task.description"
+                     (click)="openEditDialog(task)">
+                </div>
+            </ng-container>
+        </div>
+
+        <!-- 条形任务容器 -->
+        <div class="task-container" [style.height.px]="tasks.length * 30 + 40">
+            <ng-container *ngFor="let task of tasks">
+                <div *ngIf="!getTaskPosition(task).isIndicator" class="task-bar" 
+                     [style.left.px]="getTaskPosition(task).left"
+                     [style.width.px]="getTaskPosition(task).width"
+                     [style.top.px]="getTaskPosition(task).top"
+                     [style.border]="'2px solid ' + getPriorityColor(task)"
+                     [style.backgroundColor]="getTaskColor(task)"
+                     [title]="task.title + ' (' + task.priority + '): ' + task.description"
+                     (click)="openEditDialog(task)">
+                    <span class="task-title">{{task.title}}</span>
+                </div>
+            </ng-container>
+        </div>
+    </div>
+</div>
+
+<!-- 编辑弹窗 -->
+<div class="edit-dialog" *ngIf="editingTask">
+    <div class="edit-dialog-content">
+        <h3>编辑任务</h3>
+        <form (ngSubmit)="saveTask()">
+            <div class="form-group">
+                <label>标题</label>
+                <input type="text" [(ngModel)]="editingTask.title" name="title" required>
+            </div>
+            <div class="form-group">
+                <label>描述</label>
+                <textarea [(ngModel)]="editingTask.description" name="description"></textarea>
+            </div>
+            <div class="form-group">
+                <label>状态</label>
+                <select [(ngModel)]="editingTask.status" name="status">
+                    <option value="todo">待办</option>
+                    <option value="inProgress">进行中</option>
+                    <option value="done">已完成</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>优先级</label>
+                <input type="number" [(ngModel)]="editingTask.priority" name="priority" min="1">
+            </div>
+            <div class="form-group">
+                <label>开始时间</label>
+                <div class="datetime-inputs">
+                    <input type="date" [value]="formatDateInput(editingTask.start)" 
+                           (input)="updateDatePart('start', $event)">
+                    <input type="time" [value]="formatTimeInput(editingTask.start)" 
+                           (input)="updateTimePart('start', $event)">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>结束时间</label>
+                <div class="datetime-inputs">
+                    <input type="date" [value]="formatDateInput(editingTask.end)" 
+                           (input)="updateDatePart('end', $event)">
+                    <input type="time" [value]="formatTimeInput(editingTask.end)" 
+                           (input)="updateTimePart('end', $event)">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>其他字段</label>
+                <div *ngFor="let item of editingTask.others; let i = index" class="other-item">
+                    <input type="text" [(ngModel)]="item.key" [name]="'otherKey'+i" placeholder="字段名">
+                    <input type="text" [(ngModel)]="item.value" [name]="'otherValue'+i" placeholder="值">
+                    <button type="button" (click)="removeOtherField(i)">删除</button>
+                </div>
+                <button type="button" (click)="addOtherField()">添加字段</button>
+            </div>
+            <div class="dialog-actions">
+                <button type="submit">保存</button>
+                <button type="button" (click)="deleteTask()">删除</button>
+                <button type="button" (click)="closeDialog()">取消</button>
+            </div>
+        </form>
+    </div>
+</div>
+
