@@ -127,6 +127,64 @@
     z-index: 1000;
 }
 
+.edit-dialog-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: rgba(0, 0, 0, 0.5); /* 半透明背景 */
+    z-index: 1000; /* 确保覆盖其他内容 */
+}
+
+.overlay-top, .overlay-bottom, .overlay-left, .overlay-right {
+    position: absolute;
+    background-color: transparent;
+    cursor: pointer;
+    z-index: 1001; /* 确保透明区域在内容之上 */
+}
+
+.overlay-top {
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: calc(50% - 150px); /* 根据内容区域高度调整 */
+}
+
+.overlay-bottom {
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: calc(50% - 150px); /* 根据内容区域高度调整 */
+}
+
+.overlay-left {
+    top: 0;
+    left: 0;
+    width: calc(50% - 200px); /* 根据内容区域宽度调整 */
+    height: 100%;
+}
+
+.overlay-right {
+    top: 0;
+    right: 0;
+    width: calc(50% - 200px); /* 根据内容区域宽度调整 */
+    height: 100%;
+}
+
+/* .edit-dialog-content {
+    background-color: white;
+    padding: 20px;
+    border-radius: 5px;
+    width: 400px;
+    position: relative;
+    z-index: 1002;
+} */
+
+
 .edit-dialog-content {
     background-color: white;
     padding: 20px;
@@ -136,6 +194,8 @@
     max-height: 90vh;
     overflow-y: auto;
     box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
+    position: relative;
+    z-index: 1002; /* 确保内容在透明区域之上 */
 }
 
 .edit-dialog h3 {

@@ -7,8 +7,8 @@
         <button (click)="scrollToCurrentDate()">[|]</button>
         <button (click)="exportTasks()">save</button>
         <button (click)="importTasks()">load</button>
-        <span></span>
-        <span>{{ currentPrecision }}</span>
+        <!-- <span></span>
+        <span>{{ currentPrecision }}</span> -->
         <!-- <button (click)="importTasks()">导入任务</button> -->
     </div>
     <div class="calendar-body" #calendarBody (scroll)="onScroll($event)" (wheel)="onWheel($event)">
@@ -51,7 +51,12 @@
 </div>
 
 <!-- 编辑弹窗 -->
-<div class="edit-dialog" *ngIf="editingTask">
+<div class="edit-dialog-overlay" *ngIf="editingTask">
+    <!-- 上方透明区域 -->
+    <div class="overlay-top" (click)="closeDialog()"></div>
+    <!-- 左侧透明区域 -->
+    <div class="overlay-left" (click)="closeDialog()"></div>
+    <!-- 编辑弹窗内容 -->
     <div class="edit-dialog-content">
         <h3>编辑任务</h3>
         <form (ngSubmit)="saveTask()">
@@ -109,5 +114,8 @@
             </div>
         </form>
     </div>
+    <!-- 右侧透明区域 -->
+    <div class="overlay-right" (click)="closeDialog()"></div>
+    <!-- 下方透明区域 -->
+    <div class="overlay-bottom" (click)="closeDialog()"></div>
 </div>
-
