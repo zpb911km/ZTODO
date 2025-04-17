@@ -452,6 +452,7 @@ export class CalendarComponent implements AfterViewInit, OnChanges {
       case 'todo': return '#ddaa00';  // Darker orange
       case 'inProgress': return '#1a78e2';  // Darker blue
       case 'done': return '#3dab40';  // Darker green
+      case "cancelled": return '#9e9e9e';  // Darker gray
       default: return '#757575';  // Darker gray
     }
   }
