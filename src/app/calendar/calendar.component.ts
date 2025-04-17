@@ -67,7 +67,6 @@ export class CalendarComponent implements AfterViewInit, OnChanges {
     }
     this.cdr.markForCheck();
   }
-  
 
   getTaskPosition(task: Task): {left: number, width: number, top: number, isIndicator: boolean, color: string} {
     if (!this.taskLayout) return {left: 0, width: 0, top: 0, isIndicator: false, color: '#9e9e9e'};
@@ -160,9 +159,9 @@ export class CalendarComponent implements AfterViewInit, OnChanges {
     this.taskLayout = [];
     this.generateDates();
     this.scrollToCurrentDate();
-    // this.calculateTaskLayout();
+    this.calculateTaskLayout();
     this.updateTaskPositions();
-    // this.cdr.detectChanges();
+    this.cdr.detectChanges();
   }
 
   ngOnChanges() {
@@ -446,6 +445,9 @@ export class CalendarComponent implements AfterViewInit, OnChanges {
   }
 
   getTaskColor(task: Task): string {
+    if (task.others.find(o => o.key === 'color')) {
+      return task.others.find(o => o.key === 'color')!.value;
+    }
     switch(task.status) {
       case 'todo': return '#ddaa00';  // Darker orange
       case 'inProgress': return '#1a78e2';  // Darker blue
@@ -526,7 +528,7 @@ export class CalendarComponent implements AfterViewInit, OnChanges {
       title: '新任务',
       description: '',
       status: 'todo',
-      priority: 3,
+      priority: 5,
       start: new Date(now),
       end: new Date(now.setHours(now.getHours() + 1)),
       others: []
@@ -955,6 +957,15 @@ export class CalendarComponent implements AfterViewInit, OnChanges {
       return Number(progress);
     } else {
       return 0;
+    }
+  }
+
+  getTaskTag(task: Task): string | undefined {
+    if (task.others.find(o => o.key === 'tag')) {
+      const tag = task.others.find(o => o.key === 'tag')!.value;
+      return tag;
+    } else {
+      return undefined;
     }
   }
 }

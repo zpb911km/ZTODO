@@ -8,7 +8,8 @@
     "watch": "ng build --watch --configuration development",
     "tauri": "tauri",
     "build:tauri": "tauri build --bundles deb",
-    "build:android": "tauri android build"
+    "build:android": "tauri android build",
+    "dev": "tauri dev"
   },
   "private": true,
   "dependencies": {

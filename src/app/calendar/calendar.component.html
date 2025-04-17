@@ -1,14 +1,22 @@
-<meta name="viewport" content="width=device-width, initial-scale=1.4">
+<meta name="viewport" content="width=device-width, initial-scale=1.3">
 <div class="calendar">
     <div class="calendar-header">
-        <button (click)="addNewTask()">[+]</button>
-        <button (click)="zoomIn()">(+)</button>
-        <button (click)="zoomOut()">(-)</button>
-        <button (click)="scrollToCurrentDate()">[|]</button>
-        <button (click)="exportTasks()">save</button>
-        <button (click)="importTasks()">load</button>
+        <div style="display: flex; gap: 6px; align-items: center;">
+            <button (click)="addNewTask()">[+]</button>
+            <button (click)="zoomIn()">(+)</button>
+            <button (click)="zoomOut()">(-)</button>
+            <button (click)="scrollToCurrentDate()">[|]</button>
+            <button (click)="exportTasks()">save</button>
+            <button (click)="importTasks()">load</button>
+            <button (click)="toggleDarkMode()">{{ darkMode ? '🌑' : '🌙' }}</button>
+        </div>
         <br />
-        <button (click)="toggleDarkMode()">{{ darkMode ? '🌑' : '🌙' }}</button>
+        <div style="display: flex; gap: 6px; align-items: center;">
+            <span>{{ currentPrecision }}</span>
+            |
+            <span>{{ getFacingTime() }}</span>
+        </div>
+        
         <!-- <span></span>
         <span>{{ currentPrecision }}</span> -->
         <!-- <button (click)="importTasks()">导入任务</button> -->
@@ -45,6 +53,7 @@
                      [style.backgroundColor]="getTaskColor(task)"
                      [title]="task.title + ' [' + task.priority + ']: ' + task.description"
                      (click)="openEditDialog(task)">
+                    <div class="task-tag" *ngIf="getTaskTag(task)">{{ getTaskTag(task) }}</div>
                     <p class="task-title">{{task.title}}</p>
                     <div class="progress-bar-container" *ngIf="getTaskProgress(task) > 0">
                         <div class="progress-bar" [style.width.%]="getTaskProgress(task)"></div>

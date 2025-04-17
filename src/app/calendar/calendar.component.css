@@ -21,8 +21,6 @@
 }
 
 .calendar-header {
-    display: flex;
-    gap: 6px;
     padding: 10px 12px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     z-index: 10;
@@ -378,3 +376,19 @@
     transition: width 0.3s ease;
 }
 
+.task-tag {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 4px;
+    margin-right: 5px;
+}
+
+.light-theme .task-tag {
+    background-color: #1e1e1f33;
+    color: #eaeceeeb;
+}
+
+.dark-theme .task-tag {
+    background-color: #e2e6eb63;
+    color: #2223249e;
+}
