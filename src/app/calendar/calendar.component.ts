@@ -12,6 +12,7 @@ import {
 } from "@angular/core";
 import { Task } from "../core/interface/task";
 import { invoke } from "@tauri-apps/api/core";
+import { writeTextFile, readTextFile, BaseDirectory } from "@tauri-apps/plugin-fs";
 
 @Component({
   selector: "app-calendar",
@@ -171,35 +172,29 @@ export class CalendarComponent implements AfterViewInit, OnChanges {
     }
   }
 
+  totalViewUpdate() {
+    this.currentPrecision = this.getPrecision();
+    const facingTime = this.getFacingTime();
+    // 完全重置日期和布局
+    this.dates = [];
+    this.taskLayout = [];
+    this.generateDates();
+    this.calculateTaskLayout();
+    this.cdr.detectChanges();
+    this.scrollToTime(facingTime);
+  }
+
   zoomIn() {
     if (this.precisionIndex + 1 < this.precisionLevels.length) {
       this.precisionIndex++;
-      this.currentPrecision = this.getPrecision();
-      const facingTime = this.getFacingTime();
-      // 完全重置日期和布局
-      this.dates = [];
-      this.taskLayout = [];
-      this.generateDates();
-      this.calculateTaskLayout();
-      // this.updateTaskPositions();
-      this.cdr.detectChanges();
-      this.scrollToTime(facingTime);
+      this.totalViewUpdate();
     }
   }
 
   zoomOut() {
     if (this.precisionIndex - 1 >= 0) {
       this.precisionIndex--;
-      this.currentPrecision = this.getPrecision();
-      const facingTime = this.getFacingTime();
-      // 完全重置日期和布局
-      this.dates = [];
-      this.taskLayout = [];
-      this.generateDates();
-      this.calculateTaskLayout();
-      // this.updateTaskPositions();
-      this.cdr.detectChanges();
-      this.scrollToTime(facingTime);
+      this.totalViewUpdate();
     }
   }
 
@@ -558,7 +553,7 @@ export class CalendarComponent implements AfterViewInit, OnChanges {
       this.tasks.push(this.editingTask);
     }
     this.closeDialog();
-    this.calculateTaskLayout(); // 刷新任务显示
+    this.totalViewUpdate();
   }
 
   // 删除任务
@@ -567,12 +562,75 @@ export class CalendarComponent implements AfterViewInit, OnChanges {
     
     this.tasks = this.tasks.filter(t => t.id !== this.editingTask!.id);
     this.closeDialog();
-    this.calculateTaskLayout(); // 刷新任务显示
+    this.totalViewUpdate();
   }
 
   // 关闭对话框
   closeDialog(): void {
     this.editingTask = null;
+  }
+
+  init_local_profile(): string {
+    console.log('没有初始化');
+    try {
+      const remote = prompt('请输入远程位置(如果没有则留空):');
+      if (remote) {
+        writeTextFile('profile.json', remote, { baseDir: BaseDirectory.AppLocalData }).then(_ => {
+          console.log('Write profile result:', remote);
+        }).catch(error => {
+          alert('write error:' + error);
+        });
+        return remote;
+      } else {
+        alert('没有远程位置，将存储在本地');
+        writeTextFile('profile.json', "", { baseDir: BaseDirectory.AppLocalData }).then(_ => {
+          console.log('local profile created');
+        }).catch(error => {
+          alert('write error:' + error);
+        });
+        return "";
+      }
+    } catch (e) {
+      alert('应该来不到这里吧?...' + e);
+      return "";
+    }
+  }
+
+  async read_local_profile(): Promise<string> {
+    return await readTextFile('profile.json', { baseDir: BaseDirectory.AppLocalData}).then(result => {
+      console.log('Read profile result:', result);
+      try {
+        return result;
+      } catch (e) {
+        console.error('读取配置文件失败:', e);
+        alert('读取配置文件失败，请检查JSON格式');
+        return "";
+      }
+    }).catch(error => {
+      console.error('读取配置文件失败:', error);
+      alert('需要初始化配置文件');
+      return this.init_local_profile();
+    })
+  }
+
+  async read_local_file(): Promise<string> {
+    return await readTextFile('Tasks.json', { baseDir: BaseDirectory.AppLocalData}).then(result => {
+      console.log('Read file result:', result);
+      return result;
+    }).catch(error => {
+      console.error('读取文件失败:', error);
+      alert('没有找到文件');
+      return "[]";
+    });
+  }
+
+  async write_local_file(json: string): Promise<void> {
+    return await writeTextFile('Tasks.json', json, { baseDir: BaseDirectory.AppLocalData}).then(_ => {
+      console.log('Write file result:', json);
+    }).catch(error => {
+      console.error('写入文件失败:', error);
+      alert('写入文件失败');
+    });
   }
 
   async exportTasks(): Promise<void> {
@@ -585,46 +643,37 @@ export class CalendarComponent implements AfterViewInit, OnChanges {
     
     const json = JSON.stringify(tasksWithStringDates, null, 4);
     // console.log('Exported tasks:', json);
-    
-    invoke<void>("post_data", { url: 'http://172.18.91.245:12345/api/tasks', data: json }).then(_ => {
-      // console.log('Export success', json);
-    }).catch(error => {
-      alert('post failed' + error);
-    });
-    // this.http.post('http://118.202.30.22:12345/api/tasks', json).subscribe(
-    //   response => {
-    //     // console.log('HTTP POST Response:', response);
-    //     alert('Export success');
-    //   },
-    //   error => {
-    //     console.error('HTTP POST Error:', error);
-    //     alert('Export failed');
-    //   }
-    // );
+
+    const remote = await this.read_local_profile();
+    if (remote.startsWith('http://') || remote.startsWith('https://')) {
+      // 上传到远程
+      invoke<void>("post_data", { url: remote, data: json }).then(_ => {
+        // console.log('Export success', json);
+      }).catch(error => {
+        alert('post failed' + error);
+      });
+    } else {
+      // 保存到本地
+      await this.write_local_file(json);
+    }
+
+    this.totalViewUpdate();
   }
 
   async importTasks(): Promise<void> {
+    const remote = await this.read_local_profile();
     let json = "[]";
-    await invoke<string>("fetch_data", { url: 'http://172.18.91.245:12345/api/tasks' }).then(result => {
-      // console.log('Read file result:', result);
-      json = result;
-    }).catch(error => {
-      alert('fetch error:' + error);
-    });
-    // await this.http.get('http://118.202.30.22:12345/api/tasks').subscribe(
-    //   response => {
-    //     // console.log('HTTP GET Response:', response);
-    //     if (!response) {
-    //       alert('读取文件失败');
-    //       return;
-    //     }
-    //     json = response.toString();
-    //   },
-    //   error => {
-    //     console.error('HTTP GET Error:', error);
-    //     alert('读取文件失败');
-    //   }
-    // );
+    if (remote.startsWith('http://') || remote.startsWith('https://')) {
+      // 从远程导入
+      await invoke<string>("fetch_data", { url: remote }).then(result => {
+        // console.log('Read file result:', result);
+        json = result;
+      }).catch(error => {
+        alert('fetch error:' + error);
+      });
+    } else {
+      json = await this.read_local_file();
+    }
 
     
     try {
@@ -638,8 +687,8 @@ export class CalendarComponent implements AfterViewInit, OnChanges {
       }));
       
       this.tasks = tasksWithDates;
-      this.calculateTaskLayout();
-      // console.log('Imported tasks:', this.tasks);
+      
+      this.totalViewUpdate();
     } catch (e) {
       console.error('导入失败:', e);
       alert('导入失败，请检查JSON格式');
@@ -925,28 +974,28 @@ export class CalendarComponent implements AfterViewInit, OnChanges {
 
     // 根据当前精度返回对应时间
     const date = new Date(centerDate);
-    switch (this.currentPrecision) {
-      case "year":
-        date.setMonth(0, 1);
-        date.setHours(0, 0, 0, 0);
-        break;
-      case "month":
-        date.setDate(1);
-        date.setHours(0, 0, 0, 0);
-        break;
-      case "week":
-        date.setHours(0, 0, 0, 0);
-        break;
-      case "day":
-        date.setHours(0, 0, 0, 0);
-        break;
-      case "hour":
-        date.setMinutes(0, 0, 0);
-        break;
-      case "minute":
-        date.setSeconds(0, 0);
-        break;
-    }
+    // switch (this.currentPrecision) {
+    //   case "year":
+    //     date.setMonth(0, 1);
+    //     date.setHours(0, 0, 0, 0);
+    //     break;
+    //   case "month":
+    //     date.setDate(1);
+    //     date.setHours(0, 0, 0, 0);
+    //     break;
+    //   case "week":
+    //     date.setHours(0, 0, 0, 0);
+    //     break;
+    //   case "day":
+    //     date.setHours(0, 0, 0, 0);
+    //     break;
+    //   case "hour":
+    //     date.setMinutes(0, 0, 0);
+    //     break;
+    //   case "minute":
+    //     date.setSeconds(0, 0);
+    //     break;
+    // }
     
     return date;
   }

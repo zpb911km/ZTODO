@@ -19,7 +19,12 @@
     ],
     "security": {
       "assetProtocol": {
-        "enable": true
+        "enable": true,
+        "scope": {
+          "allow": [
+            "$applocaldata/**"
+          ]
+        }
       },
       "dangerousDisableAssetCspModification": false,
       "csp": null
