@@ -7,8 +7,9 @@
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "tauri": "tauri",
-    "build:tauri": "tauri build --bundles deb",
+    "build:deb": "tauri build --bundles deb",
     "build:android": "tauri android build",
+    "build:windows": "tauri build",
     "dev": "tauri dev"
   },
   "private": true,
