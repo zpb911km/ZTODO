@@ -4,11 +4,12 @@ import { RouterOutlet } from '@angular/router';
 import { invoke } from "@tauri-apps/api/core";
 import { CalendarModule } from './calendar/calendar.component';
 import { Task } from './core/interface/task';
+import { MessageComponent } from './message/message.component';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CalendarModule, CommonModule, RouterOutlet],
+  imports: [MessageComponent, CalendarModule, CommonModule, RouterOutlet],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css'
 })

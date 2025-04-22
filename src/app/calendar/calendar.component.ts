@@ -13,6 +13,7 @@ import {
 import { Task } from "../core/interface/task";
 import { invoke } from "@tauri-apps/api/core";
 import { writeTextFile, readTextFile, BaseDirectory } from "@tauri-apps/plugin-fs";
+import { MessageService, MessageType } from "../core/services/message.service";
 
 @Component({
   selector: "app-calendar",
@@ -33,7 +34,10 @@ export class CalendarComponent implements AfterViewInit, OnChanges {
   editingTask: Task | null = null; // 当前编辑的任务
   darkMode: boolean = false;
 
-  constructor(private cdr: ChangeDetectorRef) {
+  constructor(
+    private cdr: ChangeDetectorRef,
+    private messageService: MessageService,
+  ) {
     this.currentPrecision = this.precisionLevels[this.precisionIndex];
     setTimeout(() => {
       this.scrollToCurrentDate();
@@ -567,14 +571,15 @@ export class CalendarComponent implements AfterViewInit, OnChanges {
   }
 
   init_local_profile(): string {
-    console.log('没有初始化');
+    this.messageService.addMessage('没有初始化', MessageType.WARNING);
     try {
       const remote = prompt('请输入远程位置(如果没有则留空):');
       if (remote) {
         writeTextFile('profile.json', remote, { baseDir: BaseDirectory.AppLocalData }).then(_ => {
           console.log('Write profile result:', remote);
         }).catch(error => {
-          alert('write error:' + error);
+          // alert('write error:' + error);
+          this.messageService.addMessage('写入配置文件失败', MessageType.ERROR);
         });
         return remote;
       } else {
@@ -582,12 +587,14 @@ export class CalendarComponent implements AfterViewInit, OnChanges {
         writeTextFile('profile.json', "", { baseDir: BaseDirectory.AppLocalData }).then(_ => {
           console.log('local profile created');
         }).catch(error => {
-          alert('write error:' + error);
+          // alert('write error:' + error);
+          this.messageService.addMessage('创建配置文件失败', MessageType.ERROR);
         });
         return "";
       }
     } catch (e) {
-      alert('应该来不到这里吧?...' + e);
+      // alert('应该来不到这里吧?...' + e);
+      this.messageService.addMessage('应该来不到这里吧?...' + e, MessageType.DEBUG);
       return "";
     }
   }
@@ -599,12 +606,14 @@ export class CalendarComponent implements AfterViewInit, OnChanges {
         return result;
       } catch (e) {
         console.error('读取配置文件失败:', e);
-        alert('读取配置文件失败，请检查JSON格式');
+        // alert('读取配置文件失败，请检查JSON格式');
+        this.messageService.addMessage('读取配置文件失败，请检查JSON格式', MessageType.ERROR);
         return "";
       }
     }).catch(error => {
       console.error('读取配置文件失败:', error);
-      alert('需要初始化配置文件');
+      // alert('需要初始化配置文件');
+      this.messageService.addMessage('需要初始化配置文件', MessageType.WARNING);
       return this.init_local_profile();
     })
   }
@@ -615,7 +624,8 @@ export class CalendarComponent implements AfterViewInit, OnChanges {
       return result;
     }).catch(error => {
       console.error('读取文件失败:', error);
-      alert('没有找到文件');
+      // alert('没有找到文件');
+      this.messageService.addMessage('没有找到文件', MessageType.ERROR);
       return "[]";
     });
   }
@@ -625,7 +635,8 @@ export class CalendarComponent implements AfterViewInit, OnChanges {
       console.log('Write file result:', json);
     }).catch(error => {
       console.error('写入文件失败:', error);
-      alert('写入文件失败');
+      // alert('写入文件失败');
+      this.messageService.addMessage('写入文件失败', MessageType.ERROR);
     });
   }
 
@@ -652,7 +663,7 @@ export class CalendarComponent implements AfterViewInit, OnChanges {
       // 保存到本地
       await this.write_local_file(json);
     }
-
+    this.messageService.addMessage('导出成功', MessageType.SUCCESS);
     this.calculateTaskLayout();
     this.cdr.detectChanges();
   }
@@ -684,12 +695,13 @@ export class CalendarComponent implements AfterViewInit, OnChanges {
       }));
       
       this.tasks = tasksWithDates;
-      
+      this.messageService.addMessage('导入成功', MessageType.SUCCESS);
       this.calculateTaskLayout();
       this.cdr.detectChanges();
     } catch (e) {
       console.error('导入失败:', e);
-      alert('导入失败，请检查JSON格式');
+      // alert('导入失败，请检查JSON格式');
+      this.messageService.addMessage('导入失败，请检查JSON格式', MessageType.ERROR);
     }
   }
 
@@ -772,7 +784,10 @@ export class CalendarComponent implements AfterViewInit, OnChanges {
   adjustCellWidth() {
     const canvas = document.createElement('canvas');
     const context = canvas.getContext('2d')!;
-    context.font = '16px Arial'; // 根据你的样式调整字体
+    // 获取字体
+    const font = getComputedStyle(document.body).getPropertyValue('font');
+    context.font = font;
+    // this.messageService.addMessage(font, MessageType.DEBUG);
 
     let maxWidth = 0;
     this.dates.forEach(date => {

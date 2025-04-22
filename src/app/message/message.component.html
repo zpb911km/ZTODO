@@ -1,0 +1,13 @@
+<div class="message-overlay">
+  <div *ngFor="let message of messages;" class="message-container">
+    <div class="message" [class]="getMessageClass(message)">
+      <div class="message-content">
+        {{message.message}}
+        <button class="close-button" (click)="closeMessage(message.message)">×</button>
+      </div>
+      <div class="progress-bar">
+        <div class="progress" [style.width.%]="progressValues[message.message]"></div>
+      </div>
+    </div>
+  </div>
+</div>
