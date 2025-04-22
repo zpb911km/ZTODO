@@ -161,7 +161,6 @@ export class CalendarComponent implements AfterViewInit, OnChanges {
     this.generateDates();
     this.scrollToCurrentDate();
     this.calculateTaskLayout();
-    this.updateTaskPositions();
     this.cdr.detectChanges();
   }
 
@@ -216,11 +215,11 @@ export class CalendarComponent implements AfterViewInit, OnChanges {
         return;
       }
 
-      // 按优先级(降序)和开始时间(升序)排序
+      // 按优先级(降序)和结束时间(升序)排序
       const sortedTasks = [...this.tasks].sort((a, b) => {
         // if (a.priority !== b.priority) return b.priority - a.priority;
         if (a.priority !== b.priority) return a.priority - b.priority;
-        return a.start.getTime() - b.start.getTime();
+        return a.end.getTime() - b.end.getTime();
       });
 
       // 根据时间精度决定显示方式
@@ -294,8 +293,8 @@ export class CalendarComponent implements AfterViewInit, OnChanges {
       const containerRect = this.calendarBody.nativeElement.getBoundingClientRect();
       const scrollLeft = this.calendarBody.nativeElement.scrollLeft;
 
-      // 对normalTasks按开始时间排序
-      const sortedNormalTasks = [...normalTasks].sort((a, b) => a.start.getTime() - b.start.getTime());
+      // 对normalTasks按结束时间排序
+      const sortedNormalTasks = [...normalTasks].sort((a, b) => a.end.getTime() - b.end.getTime());
 
       
       // 分配任务到不同的行
@@ -430,13 +429,8 @@ export class CalendarComponent implements AfterViewInit, OnChanges {
         });
       });
       // 强制更新视图
-      this.updateTaskPositions();
+      this.cdr.detectChanges();
     }, 100);
-  }
-
-  private updateTaskPositions() {
-    // 强制更新视图
-    this.cdr.detectChanges();
   }
 
   getTaskColor(task: Task): string {
@@ -553,6 +547,7 @@ export class CalendarComponent implements AfterViewInit, OnChanges {
       this.tasks.push(this.editingTask);
     }
     this.closeDialog();
+    this.exportTasks();
     this.totalViewUpdate();
   }
 
@@ -562,6 +557,7 @@ export class CalendarComponent implements AfterViewInit, OnChanges {
     
     this.tasks = this.tasks.filter(t => t.id !== this.editingTask!.id);
     this.closeDialog();
+    this.exportTasks();
     this.totalViewUpdate();
   }
 
@@ -657,7 +653,8 @@ export class CalendarComponent implements AfterViewInit, OnChanges {
       await this.write_local_file(json);
     }
 
-    this.totalViewUpdate();
+    this.calculateTaskLayout();
+    this.cdr.detectChanges();
   }
 
   async importTasks(): Promise<void> {
@@ -688,7 +685,8 @@ export class CalendarComponent implements AfterViewInit, OnChanges {
       
       this.tasks = tasksWithDates;
       
-      this.totalViewUpdate();
+      this.calculateTaskLayout();
+      this.cdr.detectChanges();
     } catch (e) {
       console.error('导入失败:', e);
       alert('导入失败，请检查JSON格式');
