@@ -1,0 +1,69 @@
+<div class="edit-dialog-overlay" *ngIf="task">
+    <!-- 上方透明区域 -->
+    <div class="overlay-top" (click)="onClose()"></div>
+    <!-- 左侧透明区域 -->
+    <div class="overlay-left" (click)="onClose()"></div>
+    <!-- 编辑弹窗内容 -->
+    <div class="edit-dialog-content">
+        <h3>编辑任务</h3>
+        <form (ngSubmit)="onSave()">
+            <div class="form-group">
+                <label>标题</label>
+                <input type="text" [(ngModel)]="task.title" name="title" required>
+            </div>
+            <div class="form-group">
+                <label>描述</label>
+                <textarea [(ngModel)]="task.description" name="description" style="height: fit-content;"></textarea>
+            </div>
+            <div class="form-group">
+                <label>状态</label>
+                <select [(ngModel)]="task.status" name="status">
+                    <option value="todo">待办</option>
+                    <option value="inProgress">进行中</option>
+                    <option value="done">已完成</option>
+                    <option value="cancelled">已取消</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>优先级</label>
+                <input type="number" [(ngModel)]="task.priority" name="priority" min="1">
+            </div>
+            <div class="form-group">
+                <label>开始时间</label>
+                <div class="datetime-inputs">
+                    <input type="date" [value]="formatDateInput(task.start)" 
+                           (input)="updateDatePart('start', $event)">
+                    <input type="time" [value]="formatTimeInput(task.start)" 
+                           (input)="updateTimePart('start', $event)">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>结束时间</label>
+                <div class="datetime-inputs">
+                    <input type="date" [value]="formatDateInput(task.end)" 
+                           (input)="updateDatePart('end', $event)">
+                    <input type="time" [value]="formatTimeInput(task.end)" 
+                           (input)="updateTimePart('end', $event)">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>其他字段</label>
+                <div *ngFor="let item of task.others; let i = index" class="other-item">
+                    <input type="text" [(ngModel)]="item.key" [name]="'otherKey'+i" placeholder="字段名">
+                    <input type="text" [(ngModel)]="item.value" [name]="'otherValue'+i" placeholder="值">
+                    <button type="button" (click)="removeOtherField(i)">删除</button>
+                </div>
+                <button type="button" (click)="addOtherField()">添加字段</button>
+            </div>
+            <div class="dialog-actions">
+                <button type="submit">保存</button>
+                <button type="button" (click)="onDelete()">删除</button>
+                <button type="button" (click)="onClose()">取消</button>
+            </div>
+        </form>
+    </div>
+    <!-- 右侧透明区域 -->
+    <div class="overlay-right" (click)="onClose()"></div>
+    <!-- 下方透明区域 -->
+    <div class="overlay-bottom" (click)="onClose()"></div>
+</div>

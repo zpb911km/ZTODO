@@ -9,7 +9,7 @@
     display: flex;
     flex-direction: column;
     height: 100vh;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif
+    font-family: inherit;
 }
 
 .light-theme .calendar {
@@ -169,66 +169,11 @@
     transform: scale(1.5);
 }
 
-.edit-dialog {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: rgba(0, 0, 0, 0.5);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-}
 
-.edit-dialog-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background-color: rgba(0, 0, 0, 0.5); /* 半透明背景 */
-    z-index: 1000; /* 确保覆盖其他内容 */
-}
 
-.overlay-top, .overlay-bottom, .overlay-left, .overlay-right {
-    position: absolute;
-    background-color: transparent;
-    cursor: pointer;
-    z-index: 1001; /* 确保透明区域在内容之上 */
-}
 
-.overlay-top {
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: calc(50% - 150px); /* 根据内容区域高度调整 */
-}
 
-.overlay-bottom {
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    height: calc(50% - 150px); /* 根据内容区域高度调整 */
-}
 
-.overlay-left {
-    top: 0;
-    left: 0;
-    width: calc(50% - 200px); /* 根据内容区域宽度调整 */
-    height: 100%;
-}
-
-.overlay-right {
-    top: 0;
-    right: 0;
-    width: calc(50% - 200px); /* 根据内容区域宽度调整 */
-    height: 100%;
-}
 
 /* .edit-dialog-content {
     background-color: white;
@@ -240,110 +185,7 @@
 } */
 
 
-.edit-dialog-content {
-    background-color: white;
-    padding: 20px;
-    border-radius: 8px;
-    width: 90%;
-    max-width: 90%;
-    max-height: 90vh;
-    overflow-y: auto;
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
-    position: relative;
-    z-index: 1002; /* 确保内容在透明区域之上 */
-}
 
-.edit-dialog h3 {
-    margin: 0 0 16px 0;
-    color: #212529;
-    font-size: large;
-}
-
-.form-group {
-    margin-bottom: 12px;
-}
-
-.form-group label {
-    display: block;
-    margin-bottom: 4px;
-    color: #495057;
-    font-size: medium;
-}
-
-.form-group input,
-.form-group select,
-.form-group textarea {
-    width: 100%;
-    padding: 8px 10px;
-    border: 1px solid #ced4da;
-    border-radius: 4px;
-    font-size: medium;
-    transition: border-color 0.2s;
-}
-
-.form-group input:focus,
-.form-group select:focus,
-.form-group textarea:focus {
-    outline: none;
-    border-color: #4dabf7;
-    box-shadow: 0 0 0 2px rgba(77, 171, 247, 0.2);
-}
-
-.datetime-inputs {
-    display: flex;
-    gap: 8px;
-}
-
-.other-item {
-    display: flex;
-    gap: 6px;
-    margin-bottom: 6px;
-    align-items: center;
-}
-
-.dialog-actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 6px;
-    margin-top: 20px;
-}
-
-.dialog-actions button {
-    padding: 8px 12px;
-    border-radius: 4px;
-    font-size: medium;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.dialog-actions button[type="submit"] {
-    background-color: #228be6;
-    color: white;
-    border: none;
-}
-
-.dialog-actions button[type="submit"]:hover {
-    background-color: #1c7ed6;
-}
-
-.dialog-actions button[type="button"] {
-    background-color: #fa5252;
-    color: white;
-    border: none;
-}
-
-.dialog-actions button[type="button"]:hover {
-    background-color: #f03e3e;
-}
-
-.dialog-actions button:last-child {
-    background-color: #adb5bd;
-    color: white;
-}
-
-.dialog-actions button:last-child:hover {
-    background-color: #868e96;
-}
 
 /* .task-bar {
     position: absolute;

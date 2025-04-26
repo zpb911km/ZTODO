@@ -1,0 +1,163 @@
+.edit-dialog-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.overlay-top, .overlay-bottom, .overlay-left, .overlay-right {
+    position: fixed;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+.overlay-top {
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 20%;
+}
+
+.overlay-bottom {
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 20%;
+}
+
+.overlay-left {
+    top: 20%;
+    left: 0;
+    bottom: 20%;
+    width: 50%;
+}
+
+.overlay-right {
+    top: 20%;
+    right: 0;
+    bottom: 20%;
+    width: 50%;
+}
+
+.edit-dialog-content {
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    width: 500px;
+    max-width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+    z-index: 1001;
+}
+
+.edit-dialog h3 {
+    margin-top: 0;
+    margin-bottom: 20px;
+    /* font-size: 1.5em; */
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    /* font-weight: 500; */
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: #4d90fe;
+    box-shadow: 0 0 0 2px rgba(77, 144, 254, 0.2);
+}
+
+.datetime-inputs {
+    display: flex;
+    gap: 10px;
+}
+
+.other-item {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.dialog-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.dialog-actions button {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    /* font-weight: 500; */
+}
+
+.dialog-actions button[type="submit"] {
+    background-color: #4CAF50;
+    color: white;
+}
+
+.dialog-actions button[type="submit"]:hover {
+    background-color: #45a049;
+}
+
+.dialog-actions button[type="button"] {
+    background-color: #f44336;
+    color: white;
+}
+
+.dialog-actions button[type="button"]:hover {
+    background-color: #d32f2f;
+}
+
+.dialog-actions button:last-child {
+    background-color: #2196F3;
+    color: white;
+}
+
+.dialog-actions button:last-child:hover {
+    background-color: #0b7dda;
+}
+
+/* Dark theme styles */
+.dark-theme .edit-dialog-content {
+    background-color: #343a40;
+    color: #f8f9fa;
+}
+
+.dark-theme .form-group input,
+.dark-theme .form-group select,
+.dark-theme .form-group textarea {
+    background-color: #495057;
+    border-color: #6c757d;
+    color: #f8f9fa;
+}
+
+.dark-theme .form-group input:focus,
+.dark-theme .form-group select:focus,
+.dark-theme .form-group textarea:focus {
+    border-color: #4d90fe;
+}

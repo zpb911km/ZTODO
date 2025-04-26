@@ -14,13 +14,14 @@ import { Task } from "../core/interface/task";
 import { invoke } from "@tauri-apps/api/core";
 import { writeTextFile, readTextFile, BaseDirectory } from "@tauri-apps/plugin-fs";
 import { MessageService, MessageType } from "../core/services/message.service";
+import { TaskEditComponent } from "../task-edit/task-edit.component";
 
 @Component({
   selector: "app-calendar",
   templateUrl: "./calendar.component.html",
   styleUrls: ["./calendar.component.css"],
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, TaskEditComponent],
 })
 export class CalendarComponent implements AfterViewInit, OnChanges {
   @ViewChild("calendarBody") calendarBody!: ElementRef;
@@ -538,36 +539,26 @@ export class CalendarComponent implements AfterViewInit, OnChanges {
     }
   }
 
-  // 保存任务
-  saveTask(): void {
-    if (!this.editingTask) return;
-    
-    const index = this.tasks.findIndex(t => t.id === this.editingTask!.id);
-    if (index >= 0) {
-      // 更新现有任务
-      this.tasks[index] = this.editingTask;
-    } else {
-      // 添加新任务
-      this.tasks.push(this.editingTask);
-    }
-    this.closeDialog();
-    this.exportTasks();
-    this.totalViewUpdate();
-  }
-
-  // 删除任务
-  deleteTask(): void {
-    if (!this.editingTask) return;
-    
-    this.tasks = this.tasks.filter(t => t.id !== this.editingTask!.id);
-    this.closeDialog();
-    this.exportTasks();
-    this.totalViewUpdate();
-  }
-
   // 关闭对话框
   closeDialog(): void {
     this.editingTask = null;
+  }
+
+  onTaskSave(updatedTask: Task): void {
+    const index = this.tasks.findIndex(t => t.id === updatedTask.id);
+    if (index !== -1) {
+      this.tasks[index] = updatedTask;
+    } else {
+      this.tasks.push(updatedTask);
+    }
+    this.closeDialog();
+  }
+
+  onTaskDelete(): void {
+    if (this.editingTask) {
+      this.tasks = this.tasks.filter(t => t.id !== this.editingTask?.id);
+      this.closeDialog();
+    }
   }
 
   init_local_profile(): string {
@@ -579,7 +570,7 @@ export class CalendarComponent implements AfterViewInit, OnChanges {
           console.log('Write profile result:', remote);
         }).catch(error => {
           // alert('write error:' + error);
-          this.messageService.addMessage('写入配置文件失败', MessageType.ERROR);
+          this.messageService.addMessage('写入配置文件失败' + error, MessageType.ERROR);
         });
         return remote;
       } else {
@@ -588,7 +579,7 @@ export class CalendarComponent implements AfterViewInit, OnChanges {
           console.log('local profile created');
         }).catch(error => {
           // alert('write error:' + error);
-          this.messageService.addMessage('创建配置文件失败', MessageType.ERROR);
+          this.messageService.addMessage('创建配置文件失败' + error, MessageType.ERROR);
         });
         return "";
       }
