@@ -561,31 +561,32 @@ export class CalendarComponent implements AfterViewInit, OnChanges {
     }
   }
 
+  async REINIT_profile(): Promise<void> {
+    this.messageService.addMessage('重置配置文件,这将不会同步现存内容到新的地址', MessageType.WARNING);
+    await new Promise(resolve => setTimeout(resolve, 3000));
+    if (confirm('确认重置配置文件？')) {
+      this.init_local_profile();
+    }
+  }
+
   init_local_profile(): string {
-    this.messageService.addMessage('没有初始化', MessageType.WARNING);
-    try {
-      const remote = prompt('请输入远程位置(如果没有则留空):');
-      if (remote) {
-        writeTextFile('profile.json', remote, { baseDir: BaseDirectory.AppLocalData }).then(_ => {
-          console.log('Write profile result:', remote);
-        }).catch(error => {
-          // alert('write error:' + error);
-          this.messageService.addMessage('写入配置文件失败' + error, MessageType.ERROR);
-        });
-        return remote;
-      } else {
-        alert('没有远程位置，将存储在本地');
-        writeTextFile('profile.json', "", { baseDir: BaseDirectory.AppLocalData }).then(_ => {
-          console.log('local profile created');
-        }).catch(error => {
-          // alert('write error:' + error);
-          this.messageService.addMessage('创建配置文件失败' + error, MessageType.ERROR);
-        });
-        return "";
-      }
-    } catch (e) {
-      // alert('应该来不到这里吧?...' + e);
-      this.messageService.addMessage('应该来不到这里吧?...' + e, MessageType.DEBUG);
+    const remote = prompt('请输入远程位置(如果没有则留空):');
+    if (remote) {
+      writeTextFile('profile.json', remote, { baseDir: BaseDirectory.AppLocalData }).then(_ => {
+        console.log('Write profile result:', remote);
+      }).catch(error => {
+        // alert('write error:' + error);
+        this.messageService.addMessage('写入配置文件失败' + error, MessageType.ERROR);
+      });
+      return remote;
+    } else {
+      alert('没有远程位置，将存储在本地');
+      writeTextFile('profile.json', "", { baseDir: BaseDirectory.AppLocalData }).then(_ => {
+        console.log('local profile created');
+      }).catch(error => {
+        // alert('write error:' + error);
+        this.messageService.addMessage('创建配置文件失败' + error, MessageType.ERROR);
+      });
       return "";
     }
   }
@@ -661,7 +662,7 @@ export class CalendarComponent implements AfterViewInit, OnChanges {
 
   async importTasks(): Promise<void> {
     const remote = await this.read_local_profile();
-    let json = "[]";
+    let json = "";
     if (remote.startsWith('http://') || remote.startsWith('https://')) {
       // 从远程导入
       await invoke<string>("fetch_data", { url: remote }).then(result => {

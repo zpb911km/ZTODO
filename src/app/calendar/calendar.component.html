@@ -6,20 +6,22 @@
             <button (click)="zoomIn()">(+)</button>
             <button (click)="zoomOut()">(-)</button>
             <button (click)="scrollToCurrentDate()">[|]</button>
-            <button (click)="exportTasks()">save</button>
-            <button (click)="importTasks()">load</button>
-            <button (click)="toggleDarkMode()">{{ darkMode ? '🌑' : '🌙' }}</button>
+            <button (click)="exportTasks()">⭱</button>
+            <button (click)="importTasks()">⭳</button>
+            <details>
+                <summary>More...</summary>
+                <div style="display: flex; flex-wrap: wrap; gap: 6px; align-items: center;">
+                    <button (click)="toggleDarkMode()">{{ darkMode ? '🌑' : '🌙' }}</button>
+                    <button (click)="REINIT_profile()">reset</button>
+                </div>
+            </details>
         </div>
         <br />
         <div style="display: flex; gap: 6px; align-items: center;">
             <span>{{ currentPrecision }}</span>
             |
-            <span>{{ getFacingTime() }}</span>
+            <span>{{ getFacingTime().toString().split(' GMT')[0] }}</span>
         </div>
-        
-        <!-- <span></span>
-        <span>{{ currentPrecision }}</span> -->
-        <!-- <button (click)="importTasks()">导入任务</button> -->
     </div>
     <div class="calendar-body" #calendarBody (scroll)="onScroll($event)" (wheel)="onWheel($event)">
         <div class="date-container">
