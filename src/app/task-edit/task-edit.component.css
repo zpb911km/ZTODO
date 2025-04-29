@@ -74,6 +74,9 @@
 .form-group input,
 .form-group select,
 .form-group textarea {
+
+    font-family: Arial;
+    font-size: 16px;
     width: 100%;
     padding: 8px;
     border: 1px solid #ddd;
@@ -98,6 +101,20 @@
     display: flex;
     gap: 10px;
     margin-bottom: 10px;
+}
+
+.other-item-remove {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    color: #fff;
+    background-color: #eab947a0;
+    height: 57px;  /* I don't know why, but it's ugly without this line */
+}
+
+.other-item-remove:hover {
+    background-color: #eab947;
 }
 
 .dialog-actions {
@@ -161,3 +178,4 @@
 .dark-theme .form-group textarea:focus {
     border-color: #4d90fe;
 }
+

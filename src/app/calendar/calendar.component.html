@@ -66,10 +66,10 @@
     </div>
 </div>
 
-<!-- 使用task-edit组件 -->
 <app-task-edit 
     *ngIf="editingTask"
     [task]="editingTask"
+    [allTasks]="tasks"
     (save)="onTaskSave($event)"
     (delete)="onTaskDelete()"
     (close)="closeDialog()">

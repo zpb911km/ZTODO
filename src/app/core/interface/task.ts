@@ -1,3 +1,8 @@
+export interface OtherField {
+    key: string;
+    value: string;
+}
+
 export interface Task {
     id: number;
     title: string;
@@ -6,5 +11,5 @@ export interface Task {
     priority: number;
     start: Date;
     end: Date;
-    others: any[];
+    others: OtherField[];
 }

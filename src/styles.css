@@ -1,0 +1,7 @@
+/* Add Material theme */
+@import '@angular/material/prebuilt-themes/indigo-pink.css';
+
+/* Global styles */
+body {
+  margin: 0;
+}

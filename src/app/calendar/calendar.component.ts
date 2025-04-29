@@ -551,6 +551,7 @@ export class CalendarComponent implements AfterViewInit, OnChanges {
     } else {
       this.tasks.push(updatedTask);
     }
+    this.exportTasks();
     this.closeDialog();
   }
 
