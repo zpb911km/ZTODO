@@ -157,16 +157,28 @@ export class CalendarComponent implements AfterViewInit, OnChanges {
     }
   }
 
-  totalViewUpdate() {
-    this.currentPrecision = this.getPrecision();
+  async totalViewUpdate() {
     const facingTime = this.getFacingTime();
+    // this.messageService.addMessage('1', MessageType.DEBUG, 1);
+    // await new Promise(resolve => setTimeout(resolve, 1000));
+    this.currentPrecision = this.getPrecision();
+    // this.messageService.addMessage('2', MessageType.DEBUG, 1);
+    // await new Promise(resolve => setTimeout(resolve, 1000));
     // 完全重置日期和布局
     this.dates = [];
     this.taskLayout = [];
     this.generateDates();
+    // this.messageService.addMessage('3', MessageType.DEBUG, 1);
+    // await new Promise(resolve => setTimeout(resolve, 1000));
     this.calculateTaskLayout();
+    // this.messageService.addMessage('4', MessageType.DEBUG, 1);
+    // await new Promise(resolve => setTimeout(resolve, 1000));
     this.cdr.detectChanges();
+    // this.messageService.addMessage('5', MessageType.DEBUG, 1);
+    // await new Promise(resolve => setTimeout(resolve, 1000));
     this.scrollToTime(facingTime);
+    // this.messageService.addMessage('6', MessageType.DEBUG, 1);
+    // await new Promise(resolve => setTimeout(resolve, 1000));
   }
 
   zoomIn() {
@@ -346,20 +358,23 @@ export class CalendarComponent implements AfterViewInit, OnChanges {
 
           const startRect = startCell.getBoundingClientRect();
           const startRect_time = this.timeToPrecision(task.start);
+          const endRect = endCell.getBoundingClientRect();
           const endRect_time = this.timeToPrecision(task.end);
           // this.messageService.addMessage(`${task.title} startRect_time: ${startRect_time}, endRect_time: ${endRect_time}`, MessageType.DEBUG, 20);
           
           const start_time_diff = task.start.getTime() - startRect_time.getTime();
-          const end_time_diff = endRect_time.getTime() - task.end.getTime();
           const precision_time_span = this.getTimeSpanOfPrecision();
           const start_ratio = start_time_diff / precision_time_span;
+          const end_time_diff = task.end.getTime() - endRect_time.getTime();
           const end_ratio = end_time_diff / precision_time_span;
           // this.messageService.addMessage(`start_ratio: ${start_ratio}, end_ratio: ${end_ratio}`, MessageType.DEBUG, 20);
           
-          const width_ratio = (task.end.getTime() - task.start.getTime()) / precision_time_span;
+          // const width_ratio = (task.end.getTime() - task.start.getTime()) / precision_time_span;
 
           const left = startRect.left - containerRect.left + scrollLeft + startRect.width * start_ratio;
-          const width = width_ratio * startRect.width - 20; // 2倍的margin+padding
+          const right = endRect.left - containerRect.left + scrollLeft + endRect.width * end_ratio;
+          // const width = width_ratio * startRect.width - 20; // 2倍的margin+padding
+          const width = right - left;
           const top = 30 + laneIndex * 30; // 每行30px高度
 
           this.taskLayout.push({
@@ -861,53 +876,75 @@ export class CalendarComponent implements AfterViewInit, OnChanges {
     this.scrollToTime(new Date());
   }
 
-  scrollToTime(date: Date) {
+  async scrollToTime(date: Date) {
+    // this.messageService.addMessage(`scroll to time ${date.toString()}`, MessageType.DEBUG, 10);
     if (!date || !this.dates || this.dates.length === 0) return;
-    
-    const precision = this.getPrecision();
     const startDate = this.dates[0];
     if (!startDate) return;
     
     // 计算两个日期之间的差值（单位取决于当前精度）
-    let diff = 0;
-    switch(precision) {
-        case 'year':
-            diff = date.getFullYear() - startDate.getFullYear();
-            break;
-        case 'month':
-            diff = (date.getFullYear() - startDate.getFullYear()) * 12 + 
-                   (date.getMonth() - startDate.getMonth());
-            break;
-        case 'week':
-            diff = Math.floor((date.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24 * 7));
-            break;
-        case 'day':
-            diff = Math.floor((date.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
-            break;
-        case 'hour':
-            diff = Math.floor((date.getTime() - startDate.getTime()) / (1000 * 60 * 60));
-            break;
-        case 'minute':
-            diff = Math.floor((date.getTime() - startDate.getTime()) / (1000 * 60));
-            break;
-    }
+    let diff = date.getTime() - startDate.getTime();
+    diff = diff / this.getTimeSpanOfPrecision();
     
     // 获取所有日期单元格元素
     const dateElements = this.calendarBody.nativeElement.querySelectorAll('.date-cell');
     
     if (dateElements.length > 0 && diff >= 0 && diff < dateElements.length) {
         // 计算目标元素的左边界位置
-        const targetElement = dateElements[diff];
+        const targetElement = dateElements[Math.floor(diff)];
         const containerRect = this.calendarBody.nativeElement.getBoundingClientRect();
         const targetRect = targetElement.getBoundingClientRect();
-        
         // 滚动到使目标元素居中
         const scrollLeft = targetRect.left - containerRect.left + 
                           this.calendarBody.nativeElement.scrollLeft - 
                           (containerRect.width / 2) + 
-                          (targetRect.width / 2);
-        
+                          (targetRect.width * (diff % 1));
         this.calendarBody.nativeElement.scrollLeft = scrollLeft;
+    }
+    let sig = true;
+    while (sig) {
+      const diff = this.getFacingTime().getTime() - date.getTime();
+      const ratio = Math.abs(diff) / this.getTimeSpanOfPrecision();
+      let scrollLeft = this.calendarBody.nativeElement.scrollLeft;
+      if (diff > 0) {
+        scrollLeft -= this.cellWidth * ratio;
+        if (scrollLeft < 0) {
+          scrollLeft = 0;
+          const precision = this.getPrecision();
+          const firstDate = this.dates[0];
+
+          for (let i = -1; i >= -100; i--) {
+            this.dates.unshift(this.addTime(firstDate, i, precision));
+          }
+          // 完全重置日期和布局
+          this.taskLayout = [];
+          this.calculateTaskLayout();
+          // this.updateTaskPositions();
+          this.cdr.detectChanges();
+        }
+      } else {
+        scrollLeft += this.cellWidth * ratio;
+        if (scrollLeft > this.calendarBody.nativeElement.scrollWidth - this.calendarBody.nativeElement.clientWidth) {
+          scrollLeft = this.calendarBody.nativeElement.scrollWidth - this.calendarBody.nativeElement.clientWidth;
+          const precision = this.getPrecision();
+          const lastDate = this.dates[this.dates.length - 1];
+
+          for (let i = 1; i <= 100; i++) {
+            this.dates.push(this.addTime(lastDate, i, precision));
+          }
+          // 完全重置日期和布局
+          this.taskLayout = [];
+          this.calculateTaskLayout();
+          // this.updateTaskPositions();
+          this.cdr.detectChanges();
+        }
+      }
+      if (this.cellWidth * ratio < 1) {
+        sig = false;
+      }
+      this.calendarBody.nativeElement.scrollLeft = scrollLeft;
+      // this.messageService.addMessage(`scroll left ${scrollLeft}`, MessageType.DEBUG, 1);
+      // await new Promise(resolve => setTimeout(resolve, 1));
     }
   }
 
@@ -938,71 +975,41 @@ export class CalendarComponent implements AfterViewInit, OnChanges {
     if (!this.calendarBody?.nativeElement) {
       return new Date();
     }
-
+  
     const container = this.calendarBody.nativeElement;
     const containerRect = container.getBoundingClientRect();
     const centerX = containerRect.left + containerRect.width / 2;
-    
+  
     // 获取所有日期单元格
     const dateElements = container.querySelectorAll('.date-cell');
     let centerDate: Date | null = null;
-    
+  
     // 找到中心位置对应的单元格
     for (const cell of dateElements) {
       const cellRect = cell.getBoundingClientRect();
       if (cellRect.left <= centerX && cellRect.right >= centerX) {
         const cellIndex = Array.from(dateElements).indexOf(cell);
         centerDate = this.dates[cellIndex];
-        break;
+  
+        // 计算中心位置在当前单元格中的偏移比例
+        const offset = centerX - cellRect.left;
+        const ratio = offset / cellRect.width;
+  
+        // 根据当前精度计算出精确的时间
+        const precisionTimeSpan = this.getTimeSpanOfPrecision();
+        const timeOffset = precisionTimeSpan * ratio;
+  
+        const newDate = new Date(centerDate);
+        newDate.setTime(newDate.getTime() + timeOffset);
+  
+        return newDate;
       }
     }
-
-    // 如果没有找到精确匹配的单元格，取最接近的
-    if (!centerDate) {
-      let minDistance = Infinity;
-      let closestIndex = 0;
-      
-      for (let i = 0; i < dateElements.length; i++) {
-        const cellRect = dateElements[i].getBoundingClientRect();
-        const cellCenter = cellRect.left + cellRect.width / 2;
-        const distance = Math.abs(cellCenter - centerX);
-        
-        if (distance < minDistance) {
-          minDistance = distance;
-          closestIndex = i;
-        }
-      }
-      
-      centerDate = this.dates[closestIndex];
-    }
-
-    // 根据当前精度返回对应时间
-    const date = new Date(centerDate);
-    // switch (this.currentPrecision) {
-    //   case "year":
-    //     date.setMonth(0, 1);
-    //     date.setHours(0, 0, 0, 0);
-    //     break;
-    //   case "month":
-    //     date.setDate(1);
-    //     date.setHours(0, 0, 0, 0);
-    //     break;
-    //   case "week":
-    //     date.setHours(0, 0, 0, 0);
-    //     break;
-    //   case "day":
-    //     date.setHours(0, 0, 0, 0);
-    //     break;
-    //   case "hour":
-    //     date.setMinutes(0, 0, 0);
-    //     break;
-    //   case "minute":
-    //     date.setSeconds(0, 0);
-    //     break;
-    // }
-    
-    return date;
+  
+    // 如果没有找到对应的单元格，返回当前日期
+    return new Date();
   }
+  
 
   getTaskProgress(task: Task): number {
     // console.log(task.title, task.others);

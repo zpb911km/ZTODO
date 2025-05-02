@@ -52,8 +52,8 @@
 }
 
 .message-debug {
-    background-color: white;
-    color: black;
+    background-color: rgb(255, 0, 255);
+    color: rgb(255, 255, 255);
     border: 1px solid black;
 }
 

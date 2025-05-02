@@ -1,5 +1,7 @@
 # ZTODO
 
+![ZTODO](https://github.com/zpb911km/ZTODO/blob/main/src-tauri/icons/128x128.png)
+
 这是一个使用Tauri和Angular的桌面应用
 
 用来管理一切需要使用时间来组织的事件
