@@ -11,8 +11,9 @@
             <details>
                 <summary>More...</summary>
                 <div style="display: flex; flex-wrap: wrap; gap: 6px; align-items: center;">
+                    <button (click)="totalViewUpdate()" style="background-color: green;">↺</button>
                     <button (click)="toggleDarkMode()">{{ darkMode ? '🌑' : '🌙' }}</button>
-                    <button (click)="REINIT_profile()">reset</button>
+                    <button (click)="REINIT_profile()" style="background-color: red;">⚠🔄⚠</button>
                 </div>
             </details>
         </div>

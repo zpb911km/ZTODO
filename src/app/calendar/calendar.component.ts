@@ -34,6 +34,14 @@ export class CalendarComponent implements AfterViewInit, OnChanges {
   precisionIndex: number = 3; // 初始精度为 'day'
   editingTask: Task | null = null; // 当前编辑的任务
   darkMode: boolean = false;
+  private taskLayout: Array<{
+    id: number, 
+    left: number, 
+    width: number, 
+    top: number,
+    isIndicator: boolean,
+    color: string
+  }> = [];
 
   constructor(
     private cdr: ChangeDetectorRef,
@@ -87,69 +95,42 @@ export class CalendarComponent implements AfterViewInit, OnChanges {
     } : {left: 0, width: 0, top: 0, isIndicator: false, color: '#9e9e9e'};
   }
 
-  private taskLayout: Array<{
-    id: number, 
-    left: number, 
-    width: number, 
-    top: number,
-    isIndicator: boolean,
-    color: string
-  }> = [];
-
-
+  timeToPrecision(time: Date): Date {
+    const newDate = new Date(time);
+    switch (this.currentPrecision) {
+      case "year":
+        newDate.setMonth(0, 1);
+        newDate.setHours(0, 0, 0, 0);
+        break;
+      case "month":
+        newDate.setDate(1);
+        newDate.setHours(0, 0, 0, 0);
+        break;
+      case "week":
+        const weekStart = new Date(newDate);
+        weekStart.setDate(newDate.getDate() - newDate.getDay());
+        weekStart.setHours(0, 0, 0, 0);
+        newDate.setTime(weekStart.getTime());
+        break;
+      case "day":
+        newDate.setHours(0, 0, 0, 0);
+        break;
+      case "hour":
+        newDate.setMinutes(0, 0, 0);
+        break;
+      case "minute":
+        newDate.setSeconds(0, 0);
+        break;
+      default:
+        break;
+    }
+    return newDate;
+  }
 
   private findDateIndex(date: Date): number {
     return this.dates.findIndex(d => {
-      const precision = this.currentPrecision;
       const targetDate = new Date(date);
-      
-      // 根据当前精度调整比较方式
-      switch(precision) {
-        case 'year':
-          targetDate.setMonth(0, 1);
-          targetDate.setHours(0, 0, 0, 0);
-          d.setMonth(0, 1);
-          d.setHours(0, 0, 0, 0);
-          return d.getTime() === targetDate.getTime();
-          
-        case 'month':
-          targetDate.setDate(1);
-          targetDate.setHours(0, 0, 0, 0);
-          d.setDate(1);
-          d.setHours(0, 0, 0, 0);
-          return d.getTime() === targetDate.getTime();
-          
-        case 'week': {
-          // 获取周的第一天(周日)
-          const weekStart = new Date(targetDate);
-          weekStart.setDate(targetDate.getDate() - targetDate.getDay());
-          weekStart.setHours(0, 0, 0, 0);
-          
-          const compareWeekStart = new Date(d);
-          compareWeekStart.setDate(d.getDate() - d.getDay());
-          compareWeekStart.setHours(0, 0, 0, 0);
-          
-          return weekStart.getTime() === compareWeekStart.getTime();
-        }
-        
-        case 'day':
-          targetDate.setHours(0, 0, 0, 0);
-          d.setHours(0, 0, 0, 0);
-          return d.getTime() === targetDate.getTime();
-          
-        case 'hour':
-          targetDate.setMinutes(0, 0, 0);
-          d.setMinutes(0, 0, 0);
-          return d.getTime() === targetDate.getTime();
-          
-        case 'minute':
-          targetDate.setSeconds(0, 0);
-          d.setSeconds(0, 0);
-          return d.getTime() === targetDate.getTime();
-          
-        default: 
-          return false;
-      }
+      return this.timeToPrecision(d).getTime() === this.timeToPrecision(targetDate).getTime();
     });
   }
 
@@ -308,26 +289,7 @@ export class CalendarComponent implements AfterViewInit, OnChanges {
         let placed = false;
         const taskStart = task.start.getTime();
         const taskEnd = task.end.getTime();
-        let min_diff = 0; // 最小时间差
-        switch(this.currentPrecision) {
-          case 'year':
-            min_diff = 365 * 24 * 60 * 60 * 1000; // 1年
-            break;
-          case 'month':
-            min_diff = 30 * 24 * 60 * 60 * 1000; // 1月
-            break;
-          case 'week':
-            min_diff = 7 * 24 * 60 * 60 * 1000; // 1周
-            break;
-          case 'day':
-            min_diff = 24 * 60 * 60 * 1000; // 1天
-            break;
-          case 'hour':
-            min_diff = 60 * 60 * 1000; // 1小时
-            break;
-          case 'minute':
-            min_diff = 60 * 1000; // 1分钟              
-        }
+        let min_diff = this.getTimeSpanOfPrecision(); // 最小时间差
 
         // 尝试放入已有行
         for (const lane of lanes) {
@@ -383,10 +345,21 @@ export class CalendarComponent implements AfterViewInit, OnChanges {
           if (!startCell || !endCell) return;
 
           const startRect = startCell.getBoundingClientRect();
-          const endRect = endCell.getBoundingClientRect();
+          const startRect_time = this.timeToPrecision(task.start);
+          const endRect_time = this.timeToPrecision(task.end);
+          // this.messageService.addMessage(`${task.title} startRect_time: ${startRect_time}, endRect_time: ${endRect_time}`, MessageType.DEBUG, 20);
+          
+          const start_time_diff = task.start.getTime() - startRect_time.getTime();
+          const end_time_diff = endRect_time.getTime() - task.end.getTime();
+          const precision_time_span = this.getTimeSpanOfPrecision();
+          const start_ratio = start_time_diff / precision_time_span;
+          const end_ratio = end_time_diff / precision_time_span;
+          // this.messageService.addMessage(`start_ratio: ${start_ratio}, end_ratio: ${end_ratio}`, MessageType.DEBUG, 20);
+          
+          const width_ratio = (task.end.getTime() - task.start.getTime()) / precision_time_span;
 
-          const left = startRect.left - containerRect.left + scrollLeft;
-          const width = Math.max(endRect.right - startRect.left, startRect.width * 0.5);
+          const left = startRect.left - containerRect.left + scrollLeft + startRect.width * start_ratio;
+          const width = width_ratio * startRect.width - 20; // 2倍的margin+padding
           const top = 30 + laneIndex * 30; // 每行30px高度
 
           this.taskLayout.push({
@@ -436,6 +409,30 @@ export class CalendarComponent implements AfterViewInit, OnChanges {
       // 强制更新视图
       this.cdr.detectChanges();
     }, 100);
+  }
+
+  private getTimeSpanOfPrecision() {
+    let precision_time_span = 0;
+    switch (this.currentPrecision) {
+      case 'year':
+        precision_time_span = 365 * 24 * 60 * 60 * 1000; // 1年
+        break;
+      case 'month':
+        precision_time_span = 30 * 24 * 60 * 60 * 1000; // 1月
+        break;
+      case 'week':
+        precision_time_span = 7 * 24 * 60 * 60 * 1000; // 1周
+        break;
+      case 'day':
+        precision_time_span = 24 * 60 * 60 * 1000; // 1天
+        break;
+      case 'hour':
+        precision_time_span = 60 * 60 * 1000; // 1小时
+        break;
+      case 'minute':
+        precision_time_span = 60 * 1000; // 1分钟
+    }
+    return precision_time_span;
   }
 
   getTaskColor(task: Task): string {
@@ -563,8 +560,9 @@ export class CalendarComponent implements AfterViewInit, OnChanges {
   }
 
   async REINIT_profile(): Promise<void> {
-    this.messageService.addMessage('重置配置文件,这将不会同步现存内容到新的地址', MessageType.WARNING);
-    await new Promise(resolve => setTimeout(resolve, 3000));
+    this.messageService.addMessage('重置配置文件,操作不当可能损失全部数据!', MessageType.WARNING, 10);
+    this.messageService.addMessage("请在更改完成后趁全部视图还存在时点击**上传(⭱)**按钮", MessageType.WARNING, 10);
+    await new Promise(resolve => setTimeout(resolve, 5000));
     if (confirm('确认重置配置文件？')) {
       this.init_local_profile();
     }
