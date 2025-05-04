@@ -990,7 +990,7 @@ export class CalendarComponent implements AfterViewInit, OnChanges {
       const cellRect = cell.getBoundingClientRect();
       if (cellRect.left <= centerX && cellRect.right >= centerX) {
         const cellIndex = Array.from(dateElements).indexOf(cell);
-        centerDate = this.dates[cellIndex - 1]; // 我不理解啊，为什么要减一?
+        centerDate = this.dates[cellIndex]; // 改错了 (*_*)
   
         // 计算中心位置在当前单元格中的偏移比例
         const offset = centerX - cellRect.left;
