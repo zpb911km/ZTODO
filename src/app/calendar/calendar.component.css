@@ -22,7 +22,7 @@
 
 .calendar-header {
     padding: 10px 12px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     z-index: 10;
 }
 
@@ -97,7 +97,7 @@
 
 .light-theme .date-container {
     background-color: #f8f9fa;
-    border-bottom: 1px solid #e9ecef;;
+    border-bottom: 1px solid #e9ecef;
 }
 
 .dark-theme .date-container {
@@ -118,7 +118,8 @@
     background-color: #062341;
 }
 
-.task-container, .indicator-container {
+.task-container,
+.indicator-container {
     position: absolute;
     top: 50px;
     left: 0;
@@ -137,12 +138,12 @@
     display: flex;
     align-items: center;
     padding: 0 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .task-bar:hover {
     transform: translateY(4px);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
     z-index: 10;
 }
 
@@ -169,12 +170,6 @@
     transform: scale(1.5);
 }
 
-
-
-
-
-
-
 /* .edit-dialog-content {
     background-color: white;
     padding: 20px;
@@ -183,9 +178,6 @@
     position: relative;
     z-index: 1002;
 } */
-
-
-
 
 /* .task-bar {
     position: absolute;
@@ -206,7 +198,7 @@
     width: 98%;
     height: 4px;
     margin-top: 20px;
-    background-color: rgba(0,0,0,0.1);
+    background-color: rgba(0, 0, 0, 0.1);
     border-radius: 2px;
     overflow: hidden;
 }
@@ -233,4 +225,16 @@
 .dark-theme .task-tag {
     background-color: #e2e6eb63;
     color: #2223249e;
+}
+
+.center-vertical-line {
+    position: absolute;
+    z-index: 800;
+    top: 0;
+    bottom: 0;
+    left: 50%;
+    width: 1px;
+    background-color: black;
+    margin: 0;
+    padding: 0;
 }

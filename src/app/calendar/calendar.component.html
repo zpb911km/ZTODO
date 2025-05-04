@@ -1,5 +1,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <div class="calendar">
+    <div *ngIf="centerLineShow" class="center-vertical-line"></div>
     <div class="calendar-header">
         <div style="display: flex; flex-wrap: wrap; gap: 6px; align-items: center;">
             <button (click)="addNewTask()">[+]</button>
@@ -11,9 +13,10 @@
             <details>
                 <summary>More...</summary>
                 <div style="display: flex; flex-wrap: wrap; gap: 6px; align-items: center;">
-                    <button (click)="totalViewUpdate()" style="background-color: green;">↺</button>
+                    <button (click)="totalViewUpdate()" style="background-color: green;">刷新</button>
+                    <button (click)="centerLineShow = !centerLineShow">{{ centerLineShow ? '隐藏中心线' : '显示中心线' }}</button>
                     <button (click)="toggleDarkMode()">{{ darkMode ? '🌑' : '🌙' }}</button>
-                    <button (click)="REINIT_profile()" style="background-color: red;">⚠🔄⚠</button>
+                    <button (click)="REINIT_profile()" style="background-color: red;">重置</button>
                 </div>
             </details>
         </div>
